@@ -25,7 +25,6 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          sudo apt-get install -y tor
           python3 -m pip install --upgrade pip
           pip3 install flake8 pytest
           if [ -f requirements.txt ]; then pip3 install -r requirements.txt; fi
@@ -37,8 +36,6 @@ jobs:
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
       #- name: Typilus, Suggest Python Type Annotations
       #  uses: typilus/typilus-action@v0.9
-      - name: Setup Tor to allow for password-based refresh of ID
-        run: ./setup_tor.sh
       - name: Test with unittest
         env:
           CONNECTION_METHOD: ${{ secrets.CONNECTION_METHOD }}
