@@ -1,14 +1,14 @@
-[![Python package](https://github.com/scholarly-python-package/scholarly/workflows/Python%20package/badge.svg?branch=master)](https://github.com/scholarly-python-package/scholarly/actions?query=branch%3Amaster)
+[![Python package](https://github.com/scholarly-python-package/scholarly/workflows/Python%20package/badge.svg?branch=main)](https://github.com/scholarly-python-package/scholarly/actions?query=branch%3Amain)
 
 [![Documentation Status](https://readthedocs.org/projects/scholarly/badge/?version=latest)](https://scholarly.readthedocs.io/en/latest/?badge=latest)
 
 # scholarly
 
-scholarly is a module that allows you to retrieve author and publication information from [Google Scholar](https://scholar.google.com) in a friendly, Pythonic way.
+scholarly is a module that allows you to retrieve author and publication information from [Google Scholar](https://scholar.google.com) in a friendly, Pythonic way without having to solve CAPTCHAs.
 
 ## Important Note
 
-This is version 1.4 of the `scholarly` library. There has been a major refactor in the way the library operates and it's code structure and it **will break** most existing code, based on the previous (v0.x) versions.
+This is version 1.5 of the `scholarly` library. There has been a major refactor in the way the library operates and its code structure and it **will break** most existing code, based on the previous (v0.x) versions.
 
 ## Documentation
 
