@@ -140,7 +140,10 @@ class ProxyGenerator(object):
                 elif resp.status_code == 401:
                     self.logger.warning("Incorrect credentials for proxy!")
                     return False
+            except (TimeoutException, TimeoutError):
+                time.sleep(self._TIMEOUT)
             except Exception as e:
+                # import pdb; pdb.set_trace()
                 self.logger.warning("Exception while testing proxy: %s", e)
                 if ('lum' in proxies['http']) or ('scraperapi' in proxies['http']):
                     self.logger.warning("Double check your credentials and try increasing the timeout")
@@ -435,9 +438,29 @@ class ProxyGenerator(object):
         if self._webdriver:
             self._webdriver.quit()
 
+    # TODO: Consider making it a class method so pm1 and pm2 can share states
+    # TODO: Add a wait time instead of looping infinitely
+    def _fp_coroutine(self, timeout=1):
+        freeproxy = FreeProxy(rand=False, timeout=timeout)
+        dirty_proxies = set()
+        all_proxies = []
+        while True:
+            if not all_proxies:
+                all_proxies = freeproxy.get_proxy_list()
+                all_proxies.reverse()
+            proxy = all_proxies.pop()
+            if proxy in dirty_proxies:
+                continue
+            proxies = {'http': proxy, 'https': proxy}
+            proxy_works = True # self._check_proxy(proxies)
+            if proxy_works:
+                self._use_proxy(proxy, skip_checking_proxy=True)
+                dirty_proxy = (yield proxy)
+            dirty_proxies.update(dirty_proxy)
+
     def FreeProxies(self, timeout=1):
         """
-        Sets up a proxy from the free-proxy library
+        Sets up continuously rotating proxies from the free-proxy library
 
         :param timeout: Timeout for the proxy in seconds, optional
         :type timeout: float
@@ -448,17 +471,17 @@ class ProxyGenerator(object):
             pg = ProxyGenerator()
             success = pg.FreeProxies()
         """
-        freeproxy = FreeProxy(rand=True, timeout=timeout)
-        # Looping it 60000 times gives us a 85% chance that we try each proxy
-        # at least once.
-        for _ in range(60000):
-            proxy = freeproxy.get()
-            proxy_works = self._use_proxy(http=proxy, https=proxy)
-            if proxy_works:
-                return proxy_works
-
-        self.logger.info("None of the free proxies are working at the moment. "
-                         "Try again after a few minutes.")
+        # import pdb; pdb.set_trace()
+        self._fp_gen = self._fp_coroutine(timeout=timeout)
+        self._proxy_gen = self._fp_gen.send
+        proxy = next(self._fp_gen)
+        if proxy:
+            return True
+        else:
+            self._fp_gen.close()
+            self.logger.info("None of the free proxies are working at the moment. "
+                             "Try again after a few minutes.")
+            return False
 
     def ScraperAPI(self, API_KEY, country_code=None, premium=False, render=False, skip_checking_proxy=False):
         """
@@ -532,7 +555,7 @@ class ProxyGenerator(object):
         self._proxy_gen = gen
         return True
 
-    def get_next_proxy(self, num_tries = None, old_timeout = 3):
+    def get_next_proxy(self, num_tries = None, old_timeout = 3, old_proxy=None):
         new_timeout = old_timeout
         if self._can_refresh_tor:
             # Check if Tor is running and refresh it
@@ -541,12 +564,13 @@ class ProxyGenerator(object):
             time.sleep(5) # wait for the refresh to happen
             new_timeout = self._TIMEOUT # Reset timeout to default
         elif self._proxy_gen:
+            # import pdb; pdb.set_trace()
             if (num_tries):
                 self.logger.info(f"Try #{num_tries} failed. Switching proxy.") # TODO: add tries
             # Try to get another proxy
-            new_proxy = self._proxy_gen()
+            new_proxy = self._proxy_gen(old_proxy)
             while (not self._use_proxy(new_proxy)):
-                new_proxy = self._proxy_gen()
+                new_proxy = self._proxy_gen(new_proxy)
             new_timeout = self._TIMEOUT # Reset timeout to default
         else:
             self._new_session()
