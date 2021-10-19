@@ -58,6 +58,7 @@ class TestScholarly(unittest.TestCase):
             scholarly.use_proxy(None)
 
     def tearDown(self):
+        return
         if self.connection_method == "freeproxy":
             scholarly._Scholarly__nav.pm1._fp_gen.close()
         scholarly._Scholarly__nav.pm2._fp_gen.close()
