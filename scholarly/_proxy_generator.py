@@ -440,7 +440,8 @@ class ProxyGenerator(object):
 
     # TODO: Consider making it a class method so pm1 and pm2 can share states
     # TODO: Add a wait time instead of looping infinitely
-    def _fp_coroutine(self, timeout=1):
+    @classmethod
+    def _fp_coroutine(cls, timeout=1):
         freeproxy = FreeProxy(rand=False, timeout=timeout)
         dirty_proxies = set()
         all_proxies = []
@@ -452,9 +453,9 @@ class ProxyGenerator(object):
             if proxy in dirty_proxies:
                 continue
             proxies = {'http': proxy, 'https': proxy}
-            proxy_works = True # self._check_proxy(proxies)
+            proxy_works = True  # self._check_proxy(proxies)
             if proxy_works:
-                self._use_proxy(proxy, skip_checking_proxy=True)
+                # self._use_proxy(proxy, skip_checking_proxy=True)
                 dirty_proxy = (yield proxy)
             dirty_proxies.update(dirty_proxy)
 
@@ -472,16 +473,24 @@ class ProxyGenerator(object):
             success = pg.FreeProxies()
         """
         # import pdb; pdb.set_trace()
-        self._fp_gen = self._fp_coroutine(timeout=timeout)
+        self._fp_gen = ProxyGenerator._fp_coroutine(timeout=timeout)
         self._proxy_gen = self._fp_gen.send
         proxy = next(self._fp_gen)
-        if proxy:
-            return True
-        else:
+        proxy_works = False
+        n_retries = 200
+        n_tries = 0
+        while (not proxy_works) and (n_tries < n_retries):
+            proxy_works = self._use_proxy(proxy)
+            n_tries += 1
+            if not proxy_works:
+                proxy = self._proxy_gen(proxy)
+        if n_tries==n_retries:
             self._fp_gen.close()
             self.logger.info("None of the free proxies are working at the moment. "
                              "Try again after a few minutes.")
             return False
+        else:
+            return True
 
     def ScraperAPI(self, API_KEY, country_code=None, premium=False, render=False, skip_checking_proxy=False):
         """
