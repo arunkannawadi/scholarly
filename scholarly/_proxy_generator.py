@@ -448,7 +448,7 @@ class ProxyGenerator(object):
         while True:
             if not all_proxies:
                 all_proxies = freeproxy.get_proxy_list()
-                all_proxies.reverse()
+                # all_proxies.reverse()
             proxy = all_proxies.pop()
             if proxy in dirty_proxies:
                 continue
@@ -581,6 +581,7 @@ class ProxyGenerator(object):
             while (not self._use_proxy(new_proxy)):
                 new_proxy = self._proxy_gen(new_proxy)
             new_timeout = self._TIMEOUT # Reset timeout to default
+            self._new_session()
         else:
             self._new_session()
 
