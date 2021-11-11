@@ -1,11 +1,9 @@
 import unittest
-import argparse
 import os
 import sys
 from scholarly import scholarly, ProxyGenerator
 from scholarly.publication_parser import PublicationParser
 import random
-from fp.fp import FreeProxy
 import json
 
 
@@ -127,7 +125,6 @@ class TestScholarly(unittest.TestCase):
         authors = [a for a in scholarly.search_author(query)]
         self.assertGreaterEqual(len(authors), 1)
 
-
     def test_search_author_empty_author(self):
         """
         Test that sholarly.search_author('') returns no authors
@@ -151,7 +148,6 @@ class TestScholarly(unittest.TestCase):
         """
         pubs = [p for p in scholarly.search_pubs('')]
         self.assertIs(len(pubs), 0)
-
 
     def test_search_pubs_citedby(self):
         """
