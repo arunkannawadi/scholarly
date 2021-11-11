@@ -438,33 +438,41 @@ class ProxyGenerator(object):
         if self._webdriver:
             self._webdriver.quit()
 
-    # TODO: Consider making it a class method so pm1 and pm2 can share states
-    # TODO: Add a wait time instead of looping infinitely
-    @classmethod
-    def _fp_coroutine(cls, timeout=1):
+    def _fp_coroutine(self, timeout=1, wait_time=120):
+        """A coroutine to continuosly yield free proxies
+
+        It takes back the proxies that stopped working and marks it as dirty.
+        """
         freeproxy = FreeProxy(rand=False, timeout=timeout)
-        dirty_proxies = set()
+        if not hasattr(self, '_dirty_freeproxies'):
+            self._dirty_freeproxies = set()
         all_proxies = []
-        while True:
+        t1 = time.time()
+        while (time.time()-t1 < wait_time):
             if not all_proxies:
                 all_proxies = freeproxy.get_proxy_list()
                 # all_proxies.reverse()
             proxy = all_proxies.pop()
-            if proxy in dirty_proxies:
+            if proxy in self._dirty_freeproxies:
                 continue
             proxies = {'http': proxy, 'https': proxy}
-            proxy_works = True  # self._check_proxy(proxies)
+            proxy_works = self._check_proxy(proxies)
             if proxy_works:
                 # self._use_proxy(proxy, skip_checking_proxy=True)
                 dirty_proxy = (yield proxy)
-            dirty_proxies.update(dirty_proxy)
+                t1 = time.time()
+            else:
+                dirty_proxy = proxy
+            self._dirty_freeproxies.add(dirty_proxy)
 
-    def FreeProxies(self, timeout=1):
+    def FreeProxies(self, timeout=1, wait_time=120):
         """
         Sets up continuously rotating proxies from the free-proxy library
 
-        :param timeout: Timeout for the proxy in seconds, optional
+        :param timeout: Timeout for a single proxy in seconds, optional
         :type timeout: float
+        :param wait_time: Maximum time (in seconds) to wait until newer set of proxies become available at https://sslproxies.org/
+        :type wait_time: float
         :returns: whether or not the proxy was set up successfully
         :rtype: {bool}
 
@@ -473,10 +481,10 @@ class ProxyGenerator(object):
             success = pg.FreeProxies()
         """
         # import pdb; pdb.set_trace()
-        self._fp_gen = ProxyGenerator._fp_coroutine(timeout=timeout)
+        self._fp_gen = self._fp_coroutine(timeout=timeout, wait_time=wait_time)
         self._proxy_gen = self._fp_gen.send
-        proxy = next(self._fp_gen)
-        proxy_works = False
+        proxy = self._proxy_gen(None)  # prime the generator
+        proxy_works = self._use_proxy(proxy)
         n_retries = 200
         n_tries = 0
         while (not proxy_works) and (n_tries < n_retries):
@@ -484,11 +492,14 @@ class ProxyGenerator(object):
             n_tries += 1
             if not proxy_works:
                 proxy = self._proxy_gen(proxy)
-        if n_tries==n_retries:
+
+        if n_tries == n_retries:
+            n_dirty = len(self._dirty_freeproxies)
             self._fp_gen.close()
-            self.logger.info("None of the free proxies are working at the moment. "
-                             "Try again after a few minutes.")
-            return False
+            msg = ("None of the free proxies are working at the moment. "
+                  f"Marked {n_dirty} proxies dirty. Try again after a few minutes."
+                  )
+            raise MaxTriesExceededException(msg)
         else:
             return True
 
