@@ -9,10 +9,33 @@ from fp.fp import FreeProxy
 import json
 
 
-class TestScholarly(unittest.TestCase):
+class TestLuminati(unittest.TestCase):
+    skipUnless = os.getenv("USERNAME") and os.getenv("PASSWORD") and os.getenv("PORT")
 
-    def setUp(self):
+    @unittest.skipUnless(skipUnless, reason="No Luminati credentials found.")
+    def test_luminati(self):
+        """
+        Test that we can set up Luminati (Bright Data) successfully
+        """
         proxy_generator = ProxyGenerator()
+        success = proxy_generator.Luminati(usr=os.getenv("USERNAME"),
+                                           passwd=os.getenv("PASSWORD"),
+                                           proxy_port=os.getenv("PORT"))
+        self.assertTrue(success)
+
+
+class TestScraperAPI(unittest.TestCase):
+    skipUnless = os.getenv('SCRAPER_API_KEY')
+
+    @unittest.skipUnless(skipUnless, reason="No ScraperAPI key found")
+    def test_scraperapi(self):
+        """
+        Test that we can set up ScraperAPI successfully
+        """
+        proxy_generator = ProxyGenerator()
+        success = proxy_generator.ScraperAPI(os.getenv('SCRAPER_API_KEY'))
+        self.assertTrue(success)
+
         if "CONNECTION_METHOD" in scholarly.env:
             self.connection_method = os.getenv("CONNECTION_METHOD")
         else:
