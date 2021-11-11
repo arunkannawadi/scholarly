@@ -36,13 +36,23 @@ class TestScraperAPI(unittest.TestCase):
         success = proxy_generator.ScraperAPI(os.getenv('SCRAPER_API_KEY'))
         self.assertTrue(success)
 
+
+class TestScholarly(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        """
+        Setup the proxy methods for unit tests
+        """
         if "CONNECTION_METHOD" in scholarly.env:
-            self.connection_method = os.getenv("CONNECTION_METHOD")
+            cls.connection_method = os.getenv("CONNECTION_METHOD")
         else:
-            self.connection_method = "none"
-        if self.connection_method == "tor":
-            tor_sock_port = None
-            tor_control_port = None
+            cls.connection_method = "none"
+            scholarly.use_proxy(None)
+            return
+
+        proxy_generator = ProxyGenerator()
+        if cls.connection_method == "tor":
             tor_password = "scholarly_password"
             # Tor uses the 9050 port as the default socks port
             # on windows 9150 for socks and 9151 for control
@@ -52,10 +62,13 @@ class TestScraperAPI(unittest.TestCase):
             elif sys.platform.startswith("win"):
                 tor_sock_port = 9150
                 tor_control_port = 9151
-            proxy_generator.Tor_External(tor_sock_port,tor_control_port,tor_password)
-            scholarly.use_proxy(proxy_generator)
+            else:
+                tor_sock_port = None
+                tor_control_port = None
+            proxy_generator.Tor_External(tor_sock_port, tor_control_port,
+                                         tor_password)
 
-        elif self.connection_method == "tor_internal":
+        elif cls.connection_method == "tor_internal":
             if sys.platform.startswith("linux") or sys.platform.startswith("darwin"):
                 tor_cmd = 'tor'
             elif sys.platform.startswith("win"):
@@ -63,28 +76,25 @@ class TestScraperAPI(unittest.TestCase):
             else:
                 tor_cmd = None
             proxy_generator.Tor_Internal(tor_cmd = tor_cmd)
-            scholarly.use_proxy(proxy_generator)
-        elif self.connection_method == "luminati":
+
+        elif cls.connection_method == "luminati":
             scholarly.set_retries(10)
             proxy_generator.Luminati(usr=os.getenv("USERNAME"),
                                      passwd=os.getenv("PASSWORD"),
-                                     proxy_port = os.getenv("PORT"),
-                                     skip_checking_proxy=True)
-            scholarly.use_proxy(proxy_generator)
-        elif self.connection_method == "freeproxy":
+                                     proxy_port = os.getenv("PORT"))
+
+        elif cls.connection_method == "freeproxy":
             proxy_generator.FreeProxies()
-            scholarly.use_proxy(proxy_generator)
-        elif self.connection_method == "scraperapi":
-            proxy_generator.ScraperAPI(os.getenv('SCRAPER_API_KEY'), skip_checking_proxy=True)
-            scholarly.use_proxy(proxy_generator)
+
+        elif cls.connection_method == "scraperapi":
+            proxy_generator.ScraperAPI(os.getenv('SCRAPER_API_KEY'))
+
         else:
             scholarly.use_proxy(None)
 
-    def tearDown(self):
-        return
-        if self.connection_method == "freeproxy":
-            scholarly._Scholarly__nav.pm1._fp_gen.close()
-        scholarly._Scholarly__nav.pm2._fp_gen.close()
+        secondary_proxy_generator = ProxyGenerator()
+        secondary_proxy_generator.FreeProxies()
+        scholarly.use_proxy(proxy_generator, secondary_proxy_generator)
 
     @unittest.skipUnless([_bin for path in sys.path if os.path.isdir(path) for _bin in os.listdir(path)
                           if _bin=='tor' or _bin=='tor.exe'], reason='Tor executable not found')
