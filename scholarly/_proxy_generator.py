@@ -66,7 +66,7 @@ class ProxyGenerator(object):
     def get_session(self):
         return self._session
 
-    def Luminati(self, usr , passwd, proxy_port, skip_checking_proxy=False):
+    def Luminati(self, usr, passwd, proxy_port, skip_checking_proxy=False):
         """ Setups a luminati proxy without refreshing capabilities.
 
         Note: ``skip_checking_proxy`` is meant to be set to `True` only in
@@ -89,7 +89,7 @@ class ProxyGenerator(object):
             >>> pg = ProxyGenerator()
             >>> success = pg.Luminati(usr = foo, passwd = bar, port = 1200)
         """
-        if (usr != None and passwd != None and proxy_port != None):
+        if (usr is not None and passwd is not None and proxy_port is not None):
             username = usr
             password = passwd
             port = proxy_port
@@ -101,7 +101,7 @@ class ProxyGenerator(object):
         proxy_works = self._use_proxy(http=proxy, https=proxy, skip_checking_proxy=skip_checking_proxy)
         return proxy_works
 
-    def SingleProxy(self, http = None, https = None, skip_checking_proxy=False):
+    def SingleProxy(self, http=None, https=None, skip_checking_proxy=False):
         """
         Use proxy of your choice
 
@@ -570,7 +570,7 @@ class ProxyGenerator(object):
 
         return False
 
-    def has_proxy(self)-> bool:
+    def has_proxy(self) -> bool:
         return self._proxy_gen or self._can_refresh_tor
 
     def _set_proxy_generator(self, gen: Callable[..., str]) -> bool:

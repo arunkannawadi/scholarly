@@ -83,7 +83,7 @@ class TestScholarly(unittest.TestCase):
             scholarly.set_retries(10)
             proxy_generator.Luminati(usr=os.getenv("USERNAME"),
                                      passwd=os.getenv("PASSWORD"),
-                                     proxy_port = os.getenv("PORT"))
+                                     proxy_port=os.getenv("PORT"))
 
         elif cls.connection_method == "freeproxy":
             # Use the secondary proxy generator as the primary for 'freeproxy'
