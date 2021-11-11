@@ -51,6 +51,10 @@ class TestScholarly(unittest.TestCase):
             scholarly.use_proxy(None)
             return
 
+        # Use dual proxies for unit testing
+        secondary_proxy_generator = ProxyGenerator()
+        secondary_proxy_generator.FreeProxies()
+
         proxy_generator = ProxyGenerator()
         if cls.connection_method == "tor":
             tor_password = "scholarly_password"
@@ -84,7 +88,8 @@ class TestScholarly(unittest.TestCase):
                                      proxy_port = os.getenv("PORT"))
 
         elif cls.connection_method == "freeproxy":
-            proxy_generator.FreeProxies()
+            # Use the secondary proxy generator as the primary for 'freeproxy'
+            proxy_generator = secondary_proxy_generator
 
         elif cls.connection_method == "scraperapi":
             proxy_generator.ScraperAPI(os.getenv('SCRAPER_API_KEY'))
@@ -92,8 +97,6 @@ class TestScholarly(unittest.TestCase):
         else:
             scholarly.use_proxy(None)
 
-        secondary_proxy_generator = ProxyGenerator()
-        secondary_proxy_generator.FreeProxies()
         scholarly.use_proxy(proxy_generator, secondary_proxy_generator)
 
     @unittest.skipUnless([_bin for path in sys.path if os.path.isdir(path) for _bin in os.listdir(path)
