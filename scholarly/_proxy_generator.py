@@ -118,18 +118,18 @@ class ProxyGenerator(object):
         value of `False`.
 
         :param http: http proxy address
-        type http: string
+        :type http: string
         :param https: https proxy adress
         :type https: string
-        :param skip_checking_proxy: skip checking if the proxy works,
-                                    optional by default False
+        :param skip_checking_proxy: skip checking if the proxy works, optional by default False
         :type skip_checking_proxy: bool
         :returns: whether or not the proxy was set up successfully
         :rtype: {bool}
 
         :Example::
-            pg = ProxyGenerator()
-            success = pg.SingleProxy(http = <http proxy adress>, https = <https proxy adress>)
+
+            >>> pg = ProxyGenerator()
+            >>> success = pg.SingleProxy(http = <http proxy adress>, https = <https proxy adress>)
         """
         self.logger.info("Enabling proxies: http=%s https=%s", http, https)
         proxy_works = self._use_proxy(http=http, https=https, skip_checking_proxy=skip_checking_proxy)
