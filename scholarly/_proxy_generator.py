@@ -86,8 +86,8 @@ class ProxyGenerator(object):
         :rtype: {bool}
 
         :Example::
-            pg = ProxyGenerator()
-            success = pg.Luminati(usr = foo, passwd = bar, port = 1200)
+            >>> pg = ProxyGenerator()
+            >>> success = pg.Luminati(usr = foo, passwd = bar, port = 1200)
         """
         if (usr != None and passwd != None and proxy_port != None):
             username = usr
@@ -147,7 +147,6 @@ class ProxyGenerator(object):
             except (TimeoutException, TimeoutError):
                 time.sleep(self._TIMEOUT)
             except Exception as e:
-                # import pdb; pdb.set_trace()
                 self.logger.warning("Exception while testing proxy: %s", e)
                 if ('lum' in proxies['http']) or ('scraperapi' in proxies['http']):
                     self.logger.warning("Double check your credentials and try increasing the timeout")
@@ -482,10 +481,9 @@ class ProxyGenerator(object):
         :rtype: {bool}
 
         :Example::
-            pg = ProxyGenerator()
-            success = pg.FreeProxies()
+            >>> pg = ProxyGenerator()
+            >>> success = pg.FreeProxies()
         """
-        # import pdb; pdb.set_trace()
         self._fp_gen = self._fp_coroutine(timeout=timeout, wait_time=wait_time)
         self._proxy_gen = self._fp_gen.send
         proxy = self._proxy_gen(None)  # prime the generator
@@ -520,8 +518,8 @@ class ProxyGenerator(object):
         value of `False`.
 
         :Example::
-            pg = ProxyGenerator()
-            success = pg.ScraperAPI(API_KEY)
+            >>> pg = ProxyGenerator()
+            >>> success = pg.ScraperAPI(API_KEY)
 
         :param API_KEY: ScraperAPI API Key value.
         :type API_KEY: string
@@ -589,7 +587,6 @@ class ProxyGenerator(object):
             time.sleep(5) # wait for the refresh to happen
             new_timeout = self._TIMEOUT # Reset timeout to default
         elif self._proxy_gen:
-            # import pdb; pdb.set_trace()
             if (num_tries):
                 self.logger.info(f"Try #{num_tries} failed. Switching proxy.") # TODO: add tries
             # Try to get another proxy
