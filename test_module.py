@@ -37,6 +37,38 @@ class TestScraperAPI(unittest.TestCase):
         self.assertEqual(proxy_generator.proxy_mode, "SCRAPERAPI")
 
 
+class TestTorInternal(unittest.TestCase):
+    skipUnless = [_bin for path in sys.path if os.path.isdir(path) for _bin in os.listdir(path)
+                  if _bin in ('tor', 'tor.exe')]
+
+    @unittest.skipUnless(skipUnless, reason='Tor executable not found')
+    def test_tor_launch_own_process(self):
+        """
+        Test that we can launch a Tor process
+        """
+        proxy_generator = ProxyGenerator()
+        if sys.platform.startswith("linux") or sys.platform.startswith("darwin"):
+            tor_cmd = 'tor'
+        elif sys.platform.startswith("win"):
+            tor_cmd = 'tor.exe'
+        else:
+            tor_cmd = None
+
+        tor_sock_port = random.randrange(9000, 9500)
+        tor_control_port = random.randrange(9500, 9999)
+
+        result = proxy_generator.Tor_Internal(tor_cmd, tor_sock_port, tor_control_port)
+        self.assertTrue(result["proxy_works"])
+        self.assertTrue(result["refresh_works"])
+        self.assertEqual(result["tor_control_port"], tor_control_port)
+        self.assertEqual(result["tor_sock_port"], tor_sock_port)
+        # Check that we can issue a query as well
+        query = 'Ipeirotis'
+        scholarly.use_proxy(proxy_generator)
+        authors = [a for a in scholarly.search_author(query)]
+        self.assertGreaterEqual(len(authors), 1)
+
+
 class TestScholarly(unittest.TestCase):
 
     @classmethod
@@ -98,34 +130,6 @@ class TestScholarly(unittest.TestCase):
             scholarly.use_proxy(None)
 
         scholarly.use_proxy(proxy_generator, secondary_proxy_generator)
-
-    @unittest.skipUnless([_bin for path in sys.path if os.path.isdir(path) for _bin in os.listdir(path)
-                          if _bin=='tor' or _bin=='tor.exe'], reason='Tor executable not found')
-    def test_tor_launch_own_process(self):
-        """
-        Test that we can launch a Tor process
-        """
-        proxy_generator = ProxyGenerator()
-        if sys.platform.startswith("linux") or sys.platform.startswith("darwin"):
-            tor_cmd = 'tor'
-        elif sys.platform.startswith("win"):
-            tor_cmd = 'tor.exe'
-        else:
-            tor_cmd = None
-
-        tor_sock_port = random.randrange(9000, 9500)
-        tor_control_port = random.randrange(9500, 9999)
-
-        result = proxy_generator.Tor_Internal(tor_cmd, tor_sock_port, tor_control_port)
-        self.assertTrue(result["proxy_works"])
-        self.assertTrue(result["refresh_works"])
-        self.assertEqual(result["tor_control_port"], tor_control_port)
-        self.assertEqual(result["tor_sock_port"], tor_sock_port)
-        # Check that we can issue a query as well
-        query = 'Ipeirotis'
-        scholarly.use_proxy(proxy_generator)
-        authors = [a for a in scholarly.search_author(query)]
-        self.assertGreaterEqual(len(authors), 1)
 
     def test_search_author_empty_author(self):
         """
