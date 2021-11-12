@@ -40,7 +40,16 @@ jobs:
       #- name: Typilus, Suggest Python Type Annotations
       #  uses: typilus/typilus-action@v0.9
       - name: Setup Tor to allow for password-based refresh of ID
-        run: ./setup_tor.sh
+        run: ./scripts/setup_tor.sh
+      - name: Install Chrome
+        uses: nanasess/setup-chromedriver@master
+        with:
+          # Optional: do not specify to match Chrome's version
+          # chromedriver-version: '88.0.4324.96'
+          uses: browser-actions/setup-chrome@latest
+          run: |
+            chrome --version
+          # unzip chromedriver_linux64.zip
       - name: Test with unittest
         env:
           CONNECTION_METHOD: ${{ secrets.CONNECTION_METHOD }}
@@ -50,7 +59,7 @@ jobs:
           SCRAPER_API_KEY: ${{ secrets.SCRAPER_API_KEY }}
         run: |
           curl --data-binary @.github/.codecov.yml https://codecov.io/validate | head -n 1
-          coverage run -m unittest -v test_module.py
+          coverage run -m unittest -v test_module.TestScholarly.test_search_author_single_author
           coverage xml
       - name: Upload code coverage
         uses: codecov/codecov-action@v2
