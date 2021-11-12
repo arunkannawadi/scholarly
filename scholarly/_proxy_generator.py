@@ -15,6 +15,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions
 from selenium.common.exceptions import WebDriverException, UnexpectedAlertPresentException
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from urllib.parse import urlparse
 from stem import Signal
 from stem.control import Controller
@@ -328,7 +329,9 @@ class ProxyGenerator(object):
                 "proxyType": "MANUAL",
             }
 
-        self._webdriver = webdriver.Firefox()
+        options = FirefoxOptions()
+        options.add_argument('--headless')
+        self._webdriver = webdriver.Firefox(options=options)
         self._webdriver.get("https://scholar.google.com") # Need to pre-load to set cookies later
 
         # It might make sense to (pre)set cookies as well, e.g., to set a GSP ID.
