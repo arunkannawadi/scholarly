@@ -322,6 +322,20 @@ class ProxyGenerator(object):
             return self._webdriver
 
         if self._proxy_works:
+            chrome_options = webdriver.ChromeOptions()
+            chrome_options.add_argument('--headless')
+            chrome_options.add_argument('--no-sandbox')
+            chrome_options.add_argument('--disable-dev-shm-usage')
+            self._webdriver = webdriver.Chrome('chromedriver', options=chrome_options)
+            self._webdriver.get("https://scholar.google.com") # Need to pre-load to set cookies later
+
+        return self._webdriver
+
+    def _get_firefox_webdriver(self):
+        if self._webdriver:
+            return self._webdriver
+
+        if self._proxy_works:
             # Redirect webdriver through proxy
             webdriver.DesiredCapabilities.FIREFOX['proxy'] = {
                 "httpProxy": self._session.proxies['http'],
