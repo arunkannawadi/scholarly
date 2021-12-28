@@ -2,6 +2,7 @@ import unittest
 import os
 import sys
 from scholarly import scholarly, ProxyGenerator
+from scholarly.data_types import Mandate
 from scholarly.publication_parser import PublicationParser
 import random
 import json
@@ -204,7 +205,7 @@ class TestScholarly(unittest.TestCase):
         pubs = [p for p in scholarly.search_citedby(publication_id)]
         self.assertGreaterEqual(len(pubs), 11)
 
-    @unittest.skipIf(os.getenv("CONNECTION_METHOD") in {None, "none", "freeproxy"}, reason="No robust proxy setup")
+    @unittest.skip(reason="The BiBTeX comparison is not reliable")
     def test_bibtex(self):
         """
         Test that we get the BiBTeX entry correctly
@@ -265,7 +266,6 @@ class TestScholarly(unittest.TestCase):
         for key in author:
             if (key not in {"citedby", "container_type", "interests"}) and (key in expected_author):
                 self.assertEqual(author[key], expected_author[key])
-        self.assertGreaterEqual(author["citedby"], expected_author["citedby"])
         self.assertEqual(set(author["interests"]), set(expected_author["interests"]))
 
     def test_search_keywords(self):
@@ -294,7 +294,11 @@ class TestScholarly(unittest.TestCase):
         self.assertEqual(pub['author_pub_id'], u'4bahYMkAAAAJ:LI9QrySNdTsC')
         self.assertTrue('5738786554683183717' in pub['cites_id'])
         scholarly.fill(pub)
-        self.assertEqual(pub['mandates'][0]['agency'], "US National Science Foundation")
+        mandate = Mandate(agency="US National Science Foundation", effective_date="2016/1", embargo="12 months",
+                          url_policy="https://www.nsf.gov/pubs/2015/nsf15052/nsf15052.pdf",
+                          url_policy_cached="/mandates/nsf-2021-02-13.pdf",
+                          acknowledgement=" …NSF grant BCS-1354029 …")
+        self.assertIn(mandate, pub['mandates'])
         # Trigger the pprint method, but suppress the output
         with self.suppress_stdout():
             scholarly.pprint(author)
@@ -335,7 +339,7 @@ class TestScholarly(unittest.TestCase):
         self.assertEqual(author['name'], u'Marie Skłodowska-Curie')
         self.assertEqual(author['affiliation'],
                          u'Institut du radium, University of Paris')
-        self.assertEqual(author['public_access']['available'], 0)
+        self.assertEqual(author['public_access']['available'], 1)
         self.assertEqual(author['public_access']['not_available'], 0)
         self.assertGreaterEqual(author['citedby'], 1963) # TODO: maybe change
         self.assertGreaterEqual(len(author['publications']), 179)
@@ -535,6 +539,22 @@ class TestScholarly(unittest.TestCase):
         scholarly.fill(author, sections=["basics", "indices", "public_access"])
         self.assertEqual(author["scholar_id"], "ImhakoAAAAAJ")
         self.assertGreaterEqual(author["public_access"]["available"], 6)
+
+    def test_mandates(self):
+        """
+        Test that we can fetch the funding information of a paper from an author
+        """
+        author = scholarly.search_author_id("kUDCLXAAAAAJ")
+        scholarly.fill(author, sections=['public_access', 'publications'])
+        for pub in author['publications']:
+            if pub['author_pub_id'] == "kUDCLXAAAAAJ:tzM49s52ZIMC":
+                scholarly.fill(pub)
+                break
+        mandate = Mandate(agency="European Commission", effective_date="2013/12", embargo="6 months", grant="279396",
+                          url_policy="https://erc.europa.eu/sites/default/files/document/file/ERC%20Open%20Access%20guidelines-Version%201.1._10.04.2017.pdf",
+                          url_policy_cached="/mandates/horizon2020_eu-2021-02-13-en.pdf",
+        )
+        self.assertIn(mandate, pub['mandates'])
 
     def test_related_articles_from_author(self):
         """
