@@ -567,10 +567,9 @@ class _Scholarly:
 
     def get_journals(self, category='English', subcategory=None, include_comments: bool = False) -> Dict[int, Journal]:
         try:
-            #cat = self.journal_categories[category]
+            cat = self.journal_categories[category]
             try:
-                #subcat = cat[subcategory]
-                subcat = 'phy_astronomyastrophysics'
+                subcat = cat[subcategory]
                 url = f"/citations?view_op=top_venues&hl=en&vq={subcat}"
                 soup = self.__nav._get_soup(url)
 
