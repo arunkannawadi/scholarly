@@ -8,7 +8,6 @@ from bs4 import BeautifulSoup
 
 import codecs
 import logging
-import random
 import time
 from requests.exceptions import Timeout
 from selenium.webdriver.common.by import By
@@ -16,6 +15,7 @@ from .publication_parser import _SearchScholarIterator
 from .author_parser import AuthorParser
 from .publication_parser import PublicationParser
 from .data_types import Author, PublicationSource, ProxyMode
+import secrets
 
 
 class Singleton(type):
@@ -108,7 +108,7 @@ class Navigator(object, metaclass=Singleton):
         timeout=self._TIMEOUT
         while tries < self._max_retries:
             try:
-                w = random.uniform(1,2)
+                w = secrets.SystemRandom().uniform(1,2)
                 time.sleep(w)
                 resp = session.get(pagerequest, timeout=timeout)
                 self.logger.debug("Session proxy config is {}".format(session.proxies))
@@ -129,7 +129,7 @@ class Navigator(object, metaclass=Singleton):
                             self.logger.info("Retrying immediately with another session.")
                         else:
                             if pm.proxy_mode not in (ProxyMode.LUMINATI, ProxyMode.SCRAPERAPI):
-                                w = random.uniform(60, 2*60)
+                                w = secrets.SystemRandom().uniform(60, 2*60)
                                 self.logger.info("Will retry after %.2f seconds (with another session).", w)
                                 time.sleep(w)
                         self._new_session(premium=premium)
@@ -145,7 +145,7 @@ class Navigator(object, metaclass=Singleton):
             except DOSException:
                 if not pm.has_proxy():
                     self.logger.info("No other connections possible.")
-                    w = random.uniform(60, 2*60)
+                    w = secrets.SystemRandom().uniform(60, 2*60)
                     self.logger.info("Will retry after %.2f seconds (with the same session).", w)
                     time.sleep(w)
                     continue
