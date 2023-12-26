@@ -217,9 +217,9 @@ class Navigator(object, metaclass=Singleton):
         _DOS_CLASSES = [
             "rc-doscaptcha-body",
         ]
-        if any([got_class(c) for c in _DOS_CLASSES]):
+        if any(got_class(c) for c in _DOS_CLASSES):
             raise DOSException()
-        return any([got_id(i) for i in _CAPTCHA_IDS])
+        return any(got_id(i) for i in _CAPTCHA_IDS)
 
     def _get_soup(self, url: str) -> BeautifulSoup:
         """Return the BeautifulSoup for a page on scholar.google.com"""
