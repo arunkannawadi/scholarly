@@ -87,8 +87,7 @@ class ProxyGenerator(object):
             return
         session_id = random.random()
         proxy = f"http://{username}-session-{session_id}:{password}@zproxy.lum-superproxy.io:{port}"
-        proxy_works = self._use_proxy(http=proxy, https=proxy)
-        if proxy_works:
+        if proxy_works := self._use_proxy(http=proxy, https=proxy):
             self.logger.info("Luminati proxy setup successfully")
             self.proxy_mode = ProxyMode.LUMINATI
         else:
@@ -112,8 +111,7 @@ class ProxyGenerator(object):
             >>> success = pg.SingleProxy(http = <http proxy adress>, https = <https proxy adress>)
         """
         self.logger.info("Enabling proxies: http=%s https=%s", http, https)
-        proxy_works = self._use_proxy(http=http, https=https)
-        if proxy_works:
+        if proxy_works := self._use_proxy(http=http, https=https):
             self.proxy_mode = ProxyMode.SINGLEPROXY
             self.logger.info("Proxy setup successfully")
         else:
@@ -494,8 +492,7 @@ class ProxyGenerator(object):
             if proxy in self._dirty_freeproxies:
                 continue
             proxies = {'http': proxy, 'https': proxy}
-            proxy_works = self._check_proxy(proxies)
-            if proxy_works:
+            if proxy_works := self._check_proxy(proxies):
                 dirty_proxy = (yield proxy)
                 t1 = time.time()
             else:
@@ -597,8 +594,7 @@ class ProxyGenerator(object):
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
         for _ in range(3):
-            proxy_works = self._use_proxy(http=f'{prefix}:{API_KEY}@proxy-server.scraperapi.com:8001')
-            if proxy_works:
+            if proxy_works := self._use_proxy(http=f'{prefix}:{API_KEY}@proxy-server.scraperapi.com:8001'):
                 self.logger.info("ScraperAPI proxy setup successfully")
                 self._session.verify = False
                 return proxy_works
