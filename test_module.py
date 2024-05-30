@@ -5,12 +5,13 @@ from collections import Counter
 from scholarly import scholarly, ProxyGenerator
 from scholarly.data_types import Mandate
 from scholarly.publication_parser import PublicationParser
-import random
 import json
 import csv
 import requests
 from bs4 import BeautifulSoup
 from contextlib import contextmanager
+import secrets
+
 try:
     import pandas as pd
 except ImportError:
@@ -64,8 +65,8 @@ class TestTorInternal(unittest.TestCase):
         else:
             tor_cmd = None
 
-        tor_sock_port = random.randrange(9000, 9500)
-        tor_control_port = random.randrange(9500, 9999)
+        tor_sock_port = secrets.SystemRandom().randrange(9000, 9500)
+        tor_control_port = secrets.SystemRandom().randrange(9500, 9999)
 
         result = proxy_generator.Tor_Internal(tor_cmd, tor_sock_port, tor_control_port)
         self.assertTrue(result["proxy_works"])
@@ -95,7 +96,7 @@ class TestScholarly(unittest.TestCase):
         # that does not exist yet, so we can safely delete it.
         cls.mandates_filename = "scholarly.csv"
         while os.path.exists(cls.mandates_filename):
-            cls.mandates_filename = ''.join(random.choices('abcdefghijklmnopqrstuvwxyz', k=10)) + ".csv"
+            cls.mandates_filename = ''.join(secrets.SystemRandom().choices('abcdefghijklmnopqrstuvwxyz', k=10)) + ".csv"
 
     @classmethod
     def tearDownClass(cls):
@@ -532,7 +533,7 @@ class TestScholarly(unittest.TestCase):
         """
         filename = "journals.csv"
         while os.path.exists(filename):
-            filename = ''.join(random.choices('abcdefghijklmnopqrstuvwxyz', k=10)) + ".csv"
+            filename = ''.join(secrets.SystemRandom().choices('abcdefghijklmnopqrstuvwxyz', k=10)) + ".csv"
 
         try:
             scholarly.save_journals_csv(category="Physics & Mathematics", subcategory="Astronomy & Astrophysics",
