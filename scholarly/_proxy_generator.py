@@ -1,6 +1,5 @@
 from typing import Callable
 from fp.fp import FreeProxy
-import random
 import logging
 import time
 import requests
@@ -16,6 +15,8 @@ from urllib.parse import urlparse
 from fake_useragent import UserAgent
 from contextlib import contextmanager
 from deprecated import deprecated
+import secrets
+
 try:
     import stem.process
     from stem import Signal
@@ -85,7 +86,7 @@ class ProxyGenerator(object):
         else:
             self.logger.warning("Not enough parameters were provided for the Luminati proxy. Reverting to a local connection.")
             return
-        session_id = random.random()
+        session_id = secrets.SystemRandom().random()
         proxy = f"http://{username}-session-{session_id}:{password}@zproxy.lum-superproxy.io:{port}"
         proxy_works = self._use_proxy(http=proxy, https=proxy)
         if proxy_works:
@@ -287,12 +288,12 @@ class ProxyGenerator(object):
         if tor_sock_port is None:
             # Picking a random port to avoid conflicts
             # with simultaneous runs of scholarly
-            tor_sock_port = random.randrange(9000, 9500)
+            tor_sock_port = secrets.SystemRandom().randrange(9000, 9500)
 
         if tor_control_port is None:
             # Picking a random port to avoid conflicts
             # with simultaneous runs of scholarly
-            tor_control_port = random.randrange(9500, 9999)
+            tor_control_port = secrets.SystemRandom().randrange(9500, 9999)
 
         # TODO: Check that the launched Tor process stops after scholar is done
         self._tor_process = stem.process.launch_tor_with_config(
