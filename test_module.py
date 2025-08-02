@@ -478,7 +478,7 @@ class TestScholarly(unittest.TestCase):
             "Swedish Research Council for Environment, Agricultural Sciences and Spatial Planning": "88%"
         }
 
-        response = requests.get("https://scholar.google.com/citations?view_op=mandates_leaderboard&hl=en")
+        response = requests.get("https://scholar.google.com/citations?view_op=mandates_leaderboard&hl=en", timeout=60)
         soup = BeautifulSoup(response.text, "html.parser")
         agency_overall = soup.find_all("td", class_="gsc_mlt_n gsc_mlt_bd")
 
