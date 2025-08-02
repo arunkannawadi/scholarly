@@ -186,7 +186,7 @@ class ProxyGenerator(object):
 
         proxies = {'http': http, 'https': https}
         if self.proxy_mode == ProxyMode.SCRAPERAPI:
-            r = requests.get("http://api.scraperapi.com/account", params={'api_key': self._API_KEY}).json()
+            r = requests.get("http://api.scraperapi.com/account", params={'api_key': self._API_KEY}, timeout=60).json()
             if "error" in r:
                 self.logger.warning(r["error"])
                 self._proxy_works = False
@@ -568,7 +568,7 @@ class ProxyGenerator(object):
             raise ValueError("ScraperAPI API Key is required.")
 
         # Get basic account information. This will NOT be counted towards successful API requests.
-        r = requests.get("http://api.scraperapi.com/account", params={'api_key': API_KEY}).json()
+        r = requests.get("http://api.scraperapi.com/account", params={'api_key': API_KEY}, timeout=60).json()
         if "error" in r:
             self.logger.warning(r["error"])
             return False
